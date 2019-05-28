@@ -1,0 +1,43 @@
+version: '3'
+
+services:
+  mysql:
+    image: mysql:5.7
+    container_name: maxscale_mysql
+    expose:
+      - "3306" #for service mysql-proxy
+    ports:
+      - "3307:3306" #for external connection
+    environment:
+      MYSQL_ROOT_PASSWORD: password
+      MYSQL_DATABASE: db
+      MYSQL_USER: dbuser
+      MYSQL_PASSWORD: password
+
+  proxy:
+    build: .
+    container_name: maxscale
+    expose:
+      - "8989"
+    ports:
+      - "3306:3306" # mysql
+      - "8989:8989" # maxctrl rest
+    volumes:
+      - "./config.cnf:/etc/maxscale.cnf"
+      - "./entrypoint.sh:/entrypoint.sh"
+    depends_on:
+      - mysql
+
+  exporter:
+    build: ../.
+    container_name: maxscale_exporter
+    ports:
+      - "8093:8093"
+    depends_on:
+      - proxy
+    environment:
+      MAXSCALE_ADDRESS: proxy
+      MAXSCALE_PORT: 8989
+      MAXSCALE_USERNAME: admin
+      MAXSCALE_PASSWORD: mariadb
+      MAXSCALE_EXPORTER_PORT: 8093

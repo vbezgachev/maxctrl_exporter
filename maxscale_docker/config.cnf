@@ -1,0 +1,73 @@
+# original https://github.com/mariadb-corporation/MaxScale/blob/2.3/docker/maxscale.cnf.d/example.cnf
+# see tutorial: https://github.com/mariadb-corporation/MaxScale/blob/2.3/Documentation/Tutorials/Read-Write-Splitting-Tutorial.md
+
+
+# Global parameters
+[maxscale]
+threads=auto
+admin_host=0.0.0.0
+
+# since we have a large number of users: https://mariadb.com/kb/en/mariadb-maxscale-14/maxscale-configuration-usage-scenarios/#reloading-configuration
+auth_connect_timeout=60
+auth_read_timeout=60
+users_refresh_time=600
+
+# A valid value looks like
+# Omit repeating errors when they happen more than 8 times within 2 seconds
+# for 15 sec long.
+log_throttling=8, 2000, 15000
+
+logdir=/var/log/maxscale
+
+
+# https://github.com/mariadb-corporation/MaxScale/blob/2.3/Documentation/Tutorials/Configuring-Servers.md
+[server1]
+type=server
+address=mysql
+port=3306
+protocol=MariaDBBackend
+persistpoolmax=100
+persistmaxtime=150
+log_auth_warnings=true
+
+
+# Monitor for the servers
+# https://github.com/mariadb-corporation/MaxScale/blob/2.2/Documentation/Monitors/MariaDB-Monitor.md
+[MariaDB-Monitor]
+type=monitor
+module=mariadbmon
+servers=server1
+user=root
+password=password
+monitor_interval=2000
+
+
+# https://mariadb.com/kb/en/mariadb-maxscale-14/maxscale-query-log-all-filter/
+[QueryLogger]
+type=filter
+module=qlafilter
+filebase=/tmp/sql-queries.log
+log_type=session
+
+
+# ReadWriteSplit documentation:
+# https://github.com/mariadb-corporation/MaxScale/blob/2.2/Documentation/Routers/ReadWriteSplit.md
+[this-service]
+type=service
+router=readconnroute
+router_options=master,slave
+servers=server1
+user=root
+password=password
+filters=QueryLogger
+
+
+# Listener definitions for the services
+# Listeners represent the ports the services will listen on.
+[Read-Write-Listener]
+type=listener
+service=this-service
+protocol=MySQLClient
+port=3306
+authenticator_options=skip_authentication=true
+
