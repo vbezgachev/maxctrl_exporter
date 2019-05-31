@@ -1,4 +1,4 @@
-// Copyright 2019, Vitaly Bezgachev, vitaly.bezgachev@gmail.com, Kadir Tugan, kadir.tugan@gmail.com
+// Copyright 2019, Vitaly Bezgachev, vitaly.bezgachev [the_at_symbol] gmail.com, Kadir Tugan, kadir.tugan [the_at_symbol] gmail.com
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
 // You may obtain a copy of the License at
