@@ -17,7 +17,7 @@ The exporter uses exclusively [MaxScale REST API](https://mariadb.com/kb/en/maxs
 1. Install [dep](https://github.com/golang/dep#installation)
 1. Create a new folder in your $GOPATH: `mkdir -p $GOPATH/src/github.com/`
 1. Navigate to that folder: `$GOPATH/src/github.com`
-1. Clone the repository: `go get github.com/Vetal1977/maxctrl_exporter`
+1. Clone the repository: `git clone https://github.com/Vetal1977/maxctrl_exporter.git`
 
 ## Build
 
