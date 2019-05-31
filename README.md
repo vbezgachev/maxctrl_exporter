@@ -6,7 +6,8 @@ This exports the following MaxScale metrics for Prometheus:
 - Maxscale instance status
 - Event statistics per started thread
 
-This exporter uses [MaxScale REST API](https://mariadb.com/kb/en/maxscale-23-rest-api/)
+## MaxScale requirements
+The exporter uses exclusively [MaxScale REST API](https://mariadb.com/kb/en/maxscale-23-rest-api/)
 
 ## Installation
 1. Install [Golang](https://golang.org/doc/install)
