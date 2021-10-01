@@ -36,8 +36,7 @@ services:
     depends_on:
       - proxy
     environment:
-      MAXSCALE_ADDRESS: proxy
-      MAXSCALE_PORT: 8989
+      MAXSCALE_URL: http://proxy:8989
       MAXSCALE_USERNAME: admin
       MAXSCALE_PASSWORD: mariadb
       MAXSCALE_EXPORTER_PORT: 8093
