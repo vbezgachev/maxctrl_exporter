@@ -14,8 +14,11 @@
 package main
 
 import (
+	"crypto/tls"
+	"crypto/x509"
 	"encoding/json"
 	"fmt"
+	"io/ioutil"
 	"log"
 	"net/http"
 	"os"
@@ -32,9 +35,10 @@ const (
 
 // MaxScale contains connection parameters to the server and metric maps
 type MaxScale struct {
-	address               string
+	url                   string
 	username              string
 	password              string
+	transport             *http.Transport
 	up                    prometheus.Gauge
 	totalScrapes          prometheus.Counter
 	serverMetrics         map[string]Metric
@@ -44,11 +48,34 @@ type MaxScale struct {
 }
 
 // NewExporter creates a new instance of the MaxScale
-func NewExporter(address string, username string, password string) (*MaxScale, error) {
+func NewExporter(url string, username string, password string, caCertificate string) (*MaxScale, error) {
+	rootCAs, _ := x509.SystemCertPool()
+	if rootCAs == nil {
+		rootCAs = x509.NewCertPool()
+	}
+
+	if len(caCertificate) > 0 {
+		// Read in the cert file
+		certs, err := ioutil.ReadFile(caCertificate)
+		if err != nil {
+			log.Fatalf("Failed to open CA certificate file %q: %v", caCertificate, err)
+		}
+
+		// Append our cert to the system pool
+		if ok := rootCAs.AppendCertsFromPEM(certs); !ok {
+			log.Fatalf("Could not append certificate to the root store: %d", caCertificate)
+		}
+	}
+
+	transport := &http.Transport{TLSClientConfig: &tls.Config{
+		RootCAs: rootCAs,
+	}}
+
 	return &MaxScale{
-		address:  address,
-		username: username,
-		password: password,
+		url:       url,
+		username:  username,
+		password:  password,
+		transport: transport,
 		up: prometheus.NewGauge(prometheus.GaugeOpts{
 			Namespace: Namespace,
 			Name:      "up",
@@ -128,13 +155,13 @@ func (m *MaxScale) Collect(ch chan<- prometheus.Metric) {
 
 func (m *MaxScale) getStatistics(path string, v interface{}) error {
 	var err error
-	req, err := http.NewRequest("GET", "http://"+m.address+"/v1"+path, nil)
+	req, err := http.NewRequest("GET", m.url+"/v1"+path, nil)
 	if err != nil {
 		return err
 	}
 	req.SetBasicAuth(m.username, m.password)
 
-	client := &http.Client{}
+	client := &http.Client{Transport: m.transport}
 	resp, err := client.Do(req)
 	if err != nil {
 		return fmt.Errorf("error while getting %v: %v", path, err)
@@ -284,14 +311,9 @@ func (m *MaxScale) parseThreadStatus(ch chan<- prometheus.Metric) error {
 }
 
 func main() {
-	maxScaleAddress := os.Getenv("MAXSCALE_ADDRESS")
-	if len(maxScaleAddress) == 0 {
-		maxScaleAddress = "127.0.0.1"
-	}
-
-	maxScalePort := os.Getenv("MAXSCALE_PORT")
-	if len(maxScalePort) == 0 {
-		maxScalePort = "8989"
+	maxScaleUrl := os.Getenv("MAXSCALE_URL")
+	if len(maxScaleUrl) == 0 {
+		maxScaleUrl = "http://127.0.0.1:8989"
 	}
 
 	maxScaleUsername := os.Getenv("MAXSCALE_USERNAME")
@@ -309,11 +331,12 @@ func main() {
 		maxScaleExporterPort = "8080"
 	}
 
-	maxScaleFullAddress := maxScaleAddress + ":" + maxScalePort
-	log.Print("Starting MaxScale exporter")
-	log.Printf("Scraping MaxScale JSON API at: %s", maxScaleFullAddress)
+	maxScaleCACertificate := os.Getenv("MAXSCALE_CA_CERTIFICATE")
 
-	exporter, err := NewExporter(maxScaleFullAddress, maxScaleUsername, maxScalePassword)
+	log.Print("Starting MaxScale exporter")
+	log.Printf("Scraping MaxScale JSON API at: %s", maxScaleUrl)
+
+	exporter, err := NewExporter(maxScaleUrl, maxScaleUsername, maxScalePassword, maxScaleCACertificate)
 	if err != nil {
 		log.Fatalf("Failed to start maxscale exporter: %v\n", err)
 	}
