@@ -15,14 +15,6 @@
 include Makefile.common
 
 MAKE	?= make
-GO_DEP  ?= dep
 
 build:
-ifeq (,$(wildcard Gopkg.lock))
-	@echo ">> installing dependencies"
-	$(GO_DEP) ensure
-else
-	@echo ">> updating dependencies"
-	$(GO_DEP) ensure --update
-endif
 	$(MAKE) build -f Makefile.common DOCKER_IMAGE_NAME=maxctrl_exporter
