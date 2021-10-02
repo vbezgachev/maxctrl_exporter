@@ -36,10 +36,10 @@ The exporter uses exclusively [MaxScale REST API](https://mariadb.com/kb/en/maxs
 
 We have prepared a Docker-compose file for a local try. Upon start, you get running MySQL, MaxScale and Exporter containers. Note that the Exported does not use command line arguments rather relies on environment variables:
 
-- MAXSCALE_ADDRESS. URL of MaxScale server, default is 127.0.0.1
-- MAXSCALE_PORT. Exposed MaxScale server port, default is 8989
+- MAXSCALE_URL. URL of MaxScale server, default is http://127.0.0.1:8989
 - MAXSCALE_USERNAME. MaxScale user name for connection to underlying MySQL database
 - MAXSCALE_PASSWORD. MaxScale user password for connection to underlying MySQL database
+- MAXSCALE_CA_CERTIFICATE. Certificate to use to verify a secure connection
 - MAXSCALE_EXPORTER_PORT. Port that the Exporter expose to provide metrics for Prometheus
 
 ### Run
