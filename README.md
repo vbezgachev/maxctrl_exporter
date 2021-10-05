@@ -18,6 +18,10 @@ The exporter uses exclusively [MaxScale REST API](https://mariadb.com/kb/en/maxs
 1. Navigate to that folder: `$GOPATH/src/github.com`
 1. Clone the repository: `git clone https://github.com/Vetal1977/maxctrl_exporter.git`
 
+## Docker
+
+The latest Docker image of `maxctrl_exporter` is available [here](http://ghcr.io/vetal1977/maxctrl_exporter:latest)
+
 ## Build
 
 ### Manually
