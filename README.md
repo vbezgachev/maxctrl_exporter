@@ -14,17 +14,19 @@ The exporter uses exclusively [MaxScale REST API](https://mariadb.com/kb/en/maxs
 ## Installation
 
 1. Install [Golang](https://golang.org/doc/install)
-1. Install [dep](https://github.com/golang/dep#installation)
 1. Create a new folder in your $GOPATH: `mkdir -p $GOPATH/src/github.com/`
 1. Navigate to that folder: `$GOPATH/src/github.com`
 1. Clone the repository: `git clone https://github.com/Vetal1977/maxctrl_exporter.git`
+
+## Docker
+
+The latest Docker image of `maxctrl_exporter` is available [here](http://ghcr.io/vetal1977/maxctrl_exporter:latest)
 
 ## Build
 
 ### Manually
 
 1. Change to the project root directory
-1. Run `dep ensure --update` to update the dependencies
 1. Run `go build` to build the binary for your platform
 1. Build Linux binary: `GOOS=linux GOARCH=amd64 go build -o bin/linux/maxctrl_exporter`
 
@@ -52,3 +54,12 @@ We have prepared a Docker-compose file for a local try. Upon start, you get runn
 
 1. The REST API of MaxScale is accessible at `localhost:8989`. E.g. [http://localhost:8989/v1/servers](http://localhost:8989/v1/servers)
 1. The Exporter of MaxScale is accessible at `localhost:8093`. E.g. [http://localhost:8093/metrics](http://localhost:8093/metrics)
+
+## Contribution
+1. Create a new branch
+1. Make changes
+1. Run MaxScale and `maxctrl_exporter` locally, e.g. in Docker
+1. Check that you can access them and see reasonable output
+1. Commit and push the branch
+1. Create a PR
+1. Request a review from Vitaly Bezgachev, vitaly.bezgachev [the_at_symbol] gmail.com, Kadir Tugan, kadir.tugan [the_at_symbol] gmail.com
