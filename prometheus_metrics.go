@@ -59,6 +59,7 @@ var (
 	MaxscaleStatusMetrics = metrics{
 		"status_uptime":  newDesc("status", "uptime", "How long has the server been running", maxscaleStatusLabelNames, prometheus.GaugeValue),
 		"status_threads": newDesc("status", "threads", "Number of worker threads", maxscaleStatusLabelNames, prometheus.GaugeValue),
+		"status_passive": newDesc("status", "passive", "Has passive mode", maxscaleStatusLabelNames, prometheus.GaugeValue),
 	}
 
 	StatusMetrics = metrics{
