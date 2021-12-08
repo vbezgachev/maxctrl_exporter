@@ -18,3 +18,6 @@ MAKE	?= make
 
 build:
 	$(MAKE) build -f Makefile.common DOCKER_IMAGE_NAME=maxctrl_exporter
+
+build-linux-local:
+	GOOS=linux GOARCH=amd64 go build -o bin/linux/maxctrl-exporter-linux-amd64

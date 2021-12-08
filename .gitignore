@@ -19,3 +19,4 @@
 vendor/
 maxctrl_exporter
 bin/linux/maxctrl_exporter
+bin/

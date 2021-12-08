@@ -82,7 +82,8 @@ type MaxscaleStatus struct {
 	Data struct {
 		Attributes struct {
 			Parameters struct {
-				Threads int `json:"threads"`
+				Threads int  `json:"threads"`
+				Passive bool `json:"passive"`
 				// add other parameters if needed
 			} `json:"parameters"`
 			Uptime int `json:"uptime"`

@@ -256,6 +256,13 @@ func (m *MaxScale) parseMaxscaleStatus(ch chan<- prometheus.Metric) error {
 	m.createMetricForPrometheus(m.maxscaleStatusMetrics, "status_threads",
 		maxscaleStatus.Data.Attributes.Parameters.Threads, ch)
 
+	passiveMode := 0
+	if maxscaleStatus.Data.Attributes.Parameters.Passive {
+		passiveMode = 1
+	}
+
+	m.createMetricForPrometheus(m.maxscaleStatusMetrics, "status_passive", passiveMode, ch)
+
 	return nil
 }
 func (m *MaxScale) parseThreadStatus(ch chan<- prometheus.Metric) error {
