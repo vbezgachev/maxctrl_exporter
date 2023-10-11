@@ -20,7 +20,7 @@ The exporter uses exclusively [MaxScale REST API](https://mariadb.com/kb/en/maxs
 
 ## Docker
 
-The latest Docker image of `maxctrl_exporter` is available [here](http://ghcr.io/vetal1977/maxctrl_exporter:latest)
+The latest Docker image of `maxctrl_exporter` is available [here](https://github.com/users/vbezgachev/packages/container/package/maxctrl_exporter)
 
 ## Build
 
