@@ -1,4 +1,4 @@
-FROM golang:1.17
+FROM golang:1.21
 
 COPY . /go/src/github.com/maxctrl_exporter
 
