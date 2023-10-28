@@ -18,7 +18,6 @@ import (
 	"crypto/x509"
 	"encoding/json"
 	"fmt"
-	"io/ioutil"
 	"log"
 	"net/http"
 	"os"
@@ -56,14 +55,14 @@ func NewExporter(url string, username string, password string, caCertificate str
 
 	if len(caCertificate) > 0 {
 		// Read in the cert file
-		certs, err := ioutil.ReadFile(caCertificate)
+		certs, err := os.ReadFile(caCertificate)
 		if err != nil {
 			log.Fatalf("Failed to open CA certificate file %q: %v", caCertificate, err)
 		}
 
 		// Append our cert to the system pool
 		if ok := rootCAs.AppendCertsFromPEM(certs); !ok {
-			log.Fatalf("Could not append certificate to the root store: %d", caCertificate)
+			log.Fatalf("Could not append certificate to the root store from file %s", caCertificate)
 		}
 	}
 
