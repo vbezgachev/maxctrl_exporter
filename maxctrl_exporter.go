@@ -17,7 +17,9 @@ import (
 	"crypto/tls"
 	"crypto/x509"
 	"encoding/json"
+	"errors"
 	"fmt"
+	"io/fs"
 	"log"
 	"net/http"
 	"os"
@@ -25,12 +27,30 @@ import (
 
 	"github.com/prometheus/client_golang/prometheus"
 	"github.com/prometheus/client_golang/prometheus/promhttp"
+	"gopkg.in/yaml.v2"
 )
 
 const (
 	metricsPath = "/metrics"
 	localIP     = "0.0.0.0"
 )
+
+var (
+	maxScaleUrl               string // URL of maxscale instance
+	maxScaleUsername          string // Username for maxscale REST API authentication
+	maxScalePassword          string // Password for maxscale REST API authentication
+	maxScaleExporterPort      string // Port for this exporter to run on
+	maxScaleCACertificate     string // File containing CA certificate
+	maxctrlExporterConfigFile string // File containing exporter config
+)
+
+type ConfigValues struct {
+	Url           string `yaml:"url"`
+	Username      string `yaml:"username"`
+	Password      string `yaml:"password"`
+	ExporterPort  string `yaml:"exporter_port"`
+	CACertificate string `yaml:"caCertificate"`
+}
 
 // MaxScale contains connection parameters to the server and metric maps
 type MaxScale struct {
@@ -316,28 +336,63 @@ func (m *MaxScale) parseThreadStatus(ch chan<- prometheus.Metric) error {
 	return nil
 }
 
+// GetEnvVar - retrieves values of environment variables. If nothing is set, return the default value
+func GetEnvVar(envName string, defaultValue string) string {
+	envVal := os.Getenv(envName)
+	if envVal == "" {
+		return defaultValue
+	}
+	return envVal
+}
+
+func readConfigFile(fname string) {
+	yamlFile, err := os.ReadFile(fname)
+	if err != nil {
+		// If the file doesn't exist, just return
+		if errors.Is(err, fs.ErrNotExist) {
+			return
+		} else {
+			log.Printf("Could not open configuration file '%s': %v", maxctrlExporterConfigFile, err)
+		}
+	}
+	parseConfigFile(yamlFile)
+}
+
+func parseConfigFile(contents []byte) {
+	var config ConfigValues
+	err := yaml.Unmarshal(contents, &config)
+	if err != nil {
+		log.Fatalf("Could not parse config file contents: %v", err)
+	}
+	if config.Url != "" {
+		maxScaleUrl = config.Url
+	}
+	if config.Username != "" {
+		maxScaleUsername = config.Username
+	}
+	if config.Password != "" {
+		maxScalePassword = config.Password
+	}
+	if config.ExporterPort != "" {
+		maxScaleExporterPort = config.ExporterPort
+	}
+	if config.CACertificate != "" {
+		maxScaleCACertificate = config.CACertificate
+	}
+}
+
+func setConfigFromEnvironmentVars() {
+	maxScaleUrl = GetEnvVar("MAXSCALE_URL", "http://127.0.0.1:8989")
+	maxScaleUsername = GetEnvVar("MAXSCALE_USERNAME", "admin")
+	maxScalePassword = GetEnvVar("MAXSCALE_PASSWORD", "mariadb")
+	maxScaleExporterPort = GetEnvVar("MAXSCALE_EXPORTER_PORT", "8080")
+	maxScaleCACertificate = GetEnvVar("MAXSCALE_CA_CERTIFICATE", "")
+	maxctrlExporterConfigFile = GetEnvVar("MAXCTRL_EXPORTER_CFG_FILE", "maxctrl_exporter.yaml")
+}
+
 func main() {
-	maxScaleUrl := os.Getenv("MAXSCALE_URL")
-	if len(maxScaleUrl) == 0 {
-		maxScaleUrl = "http://127.0.0.1:8989"
-	}
-
-	maxScaleUsername := os.Getenv("MAXSCALE_USERNAME")
-	if len(maxScaleUsername) == 0 {
-		maxScaleUsername = "admin"
-	}
-
-	maxScalePassword := os.Getenv("MAXSCALE_PASSWORD")
-	if len(maxScalePassword) == 0 {
-		maxScalePassword = "mariadb"
-	}
-
-	maxScaleExporterPort := os.Getenv("MAXSCALE_EXPORTER_PORT")
-	if len(maxScaleExporterPort) == 0 {
-		maxScaleExporterPort = "8080"
-	}
-
-	maxScaleCACertificate := os.Getenv("MAXSCALE_CA_CERTIFICATE")
+	setConfigFromEnvironmentVars()
+	readConfigFile(maxctrlExporterConfigFile)
 
 	log.Print("Starting MaxScale exporter")
 	log.Printf("Scraping MaxScale JSON API at: %s", maxScaleUrl)
