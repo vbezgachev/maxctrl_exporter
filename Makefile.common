@@ -147,7 +147,7 @@ common-test-short:
 .PHONY: common-test
 common-test:
 	@echo ">> running all tests"
-	GO111MODULE=$(GO111MODULE) $(GO) test $(test-flags) $(GOOPTS) $(pkgs)
+	GO111MODULE=$(GO111MODULE) $(GO) test -v $(test-flags) $(GOOPTS) $(pkgs)
 
 .PHONY: common-format
 common-format:
