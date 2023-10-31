@@ -12,6 +12,8 @@ require (
 	google.golang.org/protobuf v1.31.0 // indirect
 )
 
+require gopkg.in/yaml.v2 v2.4.0
+
 require (
 	github.com/cespare/xxhash/v2 v2.2.0 // indirect
 	github.com/golang/protobuf v1.5.3 // indirect
