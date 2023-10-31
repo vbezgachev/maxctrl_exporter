@@ -1,0 +1,5 @@
+url: "http://127.0.0.1:8989"
+username: "maxctrl_username"
+password: "maxctrl_password"
+exporterPort: "8080"
+caCertificate: ""
