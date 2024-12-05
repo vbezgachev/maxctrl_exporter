@@ -1,4 +1,4 @@
-FROM centos:7
+FROM redhat/ubi8:8.10
 
 # -- maxscale --
 ENV MAXSCALE_VERSION=2.3.6
