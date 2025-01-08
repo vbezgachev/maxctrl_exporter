@@ -72,9 +72,10 @@ func TestGettingConfigFromEnvironment(t *testing.T) {
 	maxScaleExporterPort = ""
 	maxScaleCACertificate = ""
 	maxctrlExporterConfigFile = ""
+	maxScaleMaxConnections = ""
 
 	keys := []string{"MAXSCALE_URL", "MAXSCALE_USERNAME", "MAXSCALE_PASSWORD", "MAXSCALE_EXPORTER_PORT",
-		"MAXSCALE_CA_CERTIFICATE", "MAXCTRL_EXPORTER_CFG_FILE"}
+		"MAXSCALE_CA_CERTIFICATE", "MAXCTRL_EXPORTER_CFG_FILE", "MAXSCALE_MAX_CONNECTIONS"}
 
 	want := map[string]string{
 		keys[0]: "http://10.10.10.1:8989",
@@ -83,6 +84,7 @@ func TestGettingConfigFromEnvironment(t *testing.T) {
 		keys[3]: "8080",
 		keys[4]: "cert.pem",
 		keys[5]: "exporterConfig.yml",
+		keys[6]: "",
 	}
 
 	for k, v := range want {
@@ -97,6 +99,7 @@ func TestGettingConfigFromEnvironment(t *testing.T) {
 	got[keys[3]] = maxScaleExporterPort
 	got[keys[4]] = maxScaleCACertificate
 	got[keys[5]] = maxctrlExporterConfigFile
+	got[keys[6]] = maxScaleMaxConnections
 
 	for _, k := range keys {
 		if want[k] != got[k] {
@@ -127,7 +130,7 @@ func TestConfigParsing(t *testing.T) {
 	// Pre-initialize the variables
 	setConfigFromEnvironmentVars()
 
-	keys := []string{"url", "username", "password", "exporter_port", "caCertificate"}
+	keys := []string{"url", "username", "password", "exporter_port", "caCertificate", "maxConnections"}
 
 	want := map[string]string{
 		keys[0]: "http://10.10.10.1:8989",
@@ -135,6 +138,7 @@ func TestConfigParsing(t *testing.T) {
 		keys[2]: "secretPassword",
 		keys[3]: "8080",
 		keys[4]: "",
+		keys[5]: "",
 	}
 
 	contents := ""
@@ -151,6 +155,7 @@ func TestConfigParsing(t *testing.T) {
 	got[keys[2]] = maxScalePassword
 	got[keys[3]] = maxScaleExporterPort
 	got[keys[4]] = maxScaleCACertificate
+	got[keys[5]] = maxScaleMaxConnections
 
 	for _, k := range keys {
 		if want[k] != got[k] {
@@ -161,7 +166,7 @@ func TestConfigParsing(t *testing.T) {
 	// Redo the test, but with some values missing from the config file
 	contents = ""
 	for k, v := range want {
-		if k == "exporter_port" || k == "caCertificate" {
+		if k == "exporter_port" || k == "caCertificate" || k == "maxConnections" {
 			continue
 		}
 		contents = fmt.Sprintf("%s%s: %s\n", contents, k, v)
@@ -176,6 +181,7 @@ func TestConfigParsing(t *testing.T) {
 	got[keys[2]] = maxScalePassword
 	got[keys[3]] = maxScaleExporterPort
 	got[keys[4]] = maxScaleCACertificate
+	got[keys[5]] = maxScaleMaxConnections
 
 	for _, k := range keys {
 		if want[k] != got[k] {
