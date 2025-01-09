@@ -174,10 +174,9 @@ func (m *MaxScale) Collect(ch chan<- prometheus.Metric) {
 		log.Print(err)
 	}
 
-	if maxScaleMaxConnections != "" {
-		maxConnectionsFloat, _ := strconv.ParseFloat(maxScaleMaxConnections, 64)
-		m.maxConnectionsGauge.Set(maxConnectionsFloat)
-		ch <- m.maxConnectionsGauge
+	if err := m.parseMaxConnections(ch); err != nil {
+		parseErrors = true
+		log.Print(err)
 	}
 
 	if parseErrors {
@@ -276,6 +275,20 @@ func (m *MaxScale) parseServices(ch chan<- prometheus.Metric) error {
 			service.Attributes.Connections, ch, service.ID, service.Attributes.Router)
 	}
 
+	return nil
+}
+
+func (m *MaxScale) parseMaxConnections(ch chan<- prometheus.Metric) error {
+	if maxScaleMaxConnections != "" {
+		maxConnectionsFloat, err := strconv.ParseFloat(maxScaleMaxConnections, 64)
+
+		if err != nil {
+			return err
+		}
+
+		m.maxConnectionsGauge.Set(maxConnectionsFloat)
+		ch <- m.maxConnectionsGauge
+	}
 	return nil
 }
 
