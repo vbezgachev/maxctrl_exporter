@@ -23,6 +23,7 @@ import (
 	"log"
 	"net/http"
 	"os"
+	"strconv"
 	"strings"
 
 	"github.com/prometheus/client_golang/prometheus"
@@ -42,14 +43,16 @@ var (
 	maxScaleExporterPort      string // Port for this exporter to run on
 	maxScaleCACertificate     string // File containing CA certificate
 	maxctrlExporterConfigFile string // File containing exporter config
+	maxScaleMaxConnections    string // MaxScale max_connections configuration setting
 )
 
 type ConfigValues struct {
-	Url           string `yaml:"url"`
-	Username      string `yaml:"username"`
-	Password      string `yaml:"password"`
-	ExporterPort  string `yaml:"exporter_port"`
-	CACertificate string `yaml:"caCertificate"`
+	Url            string `yaml:"url"`
+	Username       string `yaml:"username"`
+	Password       string `yaml:"password"`
+	ExporterPort   string `yaml:"exporter_port"`
+	CACertificate  string `yaml:"caCertificate"`
+	MaxConnections string `yaml:"maxConnections"`
 }
 
 // MaxScale contains connection parameters to the server and metric maps
@@ -64,6 +67,7 @@ type MaxScale struct {
 	serviceMetrics        map[string]Metric
 	maxscaleStatusMetrics map[string]Metric
 	statusMetrics         map[string]Metric
+	maxConnectionsGauge   prometheus.Gauge
 }
 
 // NewExporter creates a new instance of the MaxScale
@@ -109,6 +113,11 @@ func NewExporter(url string, username string, password string, caCertificate str
 		serviceMetrics:        ServiceMetrics,
 		maxscaleStatusMetrics: MaxscaleStatusMetrics,
 		statusMetrics:         StatusMetrics,
+		maxConnectionsGauge: prometheus.NewGauge(prometheus.GaugeOpts{
+			Namespace: Namespace,
+			Name:      "maxscale_max_connections",
+			Help:      "Maximum allowed connections setting for MaxScale instance",
+		}),
 	}, nil
 }
 
@@ -133,6 +142,9 @@ func (m *MaxScale) Describe(ch chan<- *prometheus.Desc) {
 
 	ch <- m.up.Desc()
 	ch <- m.totalScrapes.Desc()
+	if maxScaleMaxConnections != "" {
+		ch <- m.maxConnectionsGauge.Desc()
+	}
 }
 
 // Collect fetches the stats from configured MaxScale location and delivers them
@@ -158,6 +170,11 @@ func (m *MaxScale) Collect(ch chan<- prometheus.Metric) {
 	}
 
 	if err := m.parseThreadStatus(ch); err != nil {
+		parseErrors = true
+		log.Print(err)
+	}
+
+	if err := m.parseMaxConnections(ch); err != nil {
 		parseErrors = true
 		log.Print(err)
 	}
@@ -261,6 +278,20 @@ func (m *MaxScale) parseServices(ch chan<- prometheus.Metric) error {
 	return nil
 }
 
+func (m *MaxScale) parseMaxConnections(ch chan<- prometheus.Metric) error {
+	if maxScaleMaxConnections != "" {
+		maxConnectionsFloat, err := strconv.ParseFloat(maxScaleMaxConnections, 64)
+
+		if err != nil {
+			return err
+		}
+
+		m.maxConnectionsGauge.Set(maxConnectionsFloat)
+		ch <- m.maxConnectionsGauge
+	}
+	return nil
+}
+
 func (m *MaxScale) parseMaxscaleStatus(ch chan<- prometheus.Metric) error {
 	var maxscaleStatus MaxscaleStatus
 	err := m.getStatistics("/maxscale", &maxscaleStatus)
@@ -336,6 +367,20 @@ func (m *MaxScale) parseThreadStatus(ch chan<- prometheus.Metric) error {
 	return nil
 }
 
+func validateMaxConnections(valuePassed string) string {
+	if valuePassed == "" {
+		return valuePassed
+	}
+	parsedValue, err := strconv.ParseFloat(valuePassed, 64)
+	if err != nil {
+		log.Fatalf("The maxConnections parameter has to be a number: %v", err)
+	}
+	if parsedValue <= 0.0 {
+		log.Fatalf("The maxConnections parameter can't be negative or 0")
+	}
+	return valuePassed
+}
+
 // GetEnvVar - retrieves values of environment variables. If nothing is set, return the default value
 func GetEnvVar(envName string, defaultValue string) string {
 	envVal := os.Getenv(envName)
@@ -379,6 +424,9 @@ func parseConfigFile(contents []byte) {
 	if config.CACertificate != "" {
 		maxScaleCACertificate = config.CACertificate
 	}
+	if config.MaxConnections != "" {
+		maxScaleMaxConnections = validateMaxConnections(config.MaxConnections)
+	}
 }
 
 func setConfigFromEnvironmentVars() {
@@ -388,6 +436,7 @@ func setConfigFromEnvironmentVars() {
 	maxScaleExporterPort = GetEnvVar("MAXSCALE_EXPORTER_PORT", "8080")
 	maxScaleCACertificate = GetEnvVar("MAXSCALE_CA_CERTIFICATE", "")
 	maxctrlExporterConfigFile = GetEnvVar("MAXCTRL_EXPORTER_CFG_FILE", "maxctrl_exporter.yaml")
+	maxScaleMaxConnections = validateMaxConnections(GetEnvVar("MAXSCALE_MAX_CONNECTIONS", ""))
 }
 
 func main() {
