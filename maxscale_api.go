@@ -58,7 +58,8 @@ type Services struct {
 			RouterDiagnostics interface {
 			} `json:"router_diagnostics"`
 			//nolint
-			Parameters interface {
+			Parameters struct {
+				MaxConnections int `json:"max_connections"`
 			} `json:"parameters"`
 			//nolint
 			Listeners []interface {

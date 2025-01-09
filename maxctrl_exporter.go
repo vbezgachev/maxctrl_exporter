@@ -256,6 +256,9 @@ func (m *MaxScale) parseServices(ch chan<- prometheus.Metric) error {
 
 		m.createMetricForPrometheus(m.serviceMetrics, "service_sessions_total",
 			service.Attributes.Connections, ch, service.ID, service.Attributes.Router)
+
+		m.createMetricForPrometheus(m.serviceMetrics, "service_max_connections",
+			service.Attributes.Parameters.MaxConnections, ch, service.ID, service.Attributes.Router)
 	}
 
 	return nil

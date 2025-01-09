@@ -54,6 +54,7 @@ var (
 	ServiceMetrics = metrics{
 		"service_current_sessions": newDesc("service", "current_sessions", "Amount of sessions currently active", serviceLabelNames, prometheus.GaugeValue),
 		"service_sessions_total":   newDesc("service", "total_sessions", "Total amount of sessions", serviceLabelNames, prometheus.CounterValue),
+		"service_max_connections":  newDesc("service", "max_connections", "Max connections allowed", serviceLabelNames, prometheus.GaugeValue),
 	}
 
 	MaxscaleStatusMetrics = metrics{
