@@ -43,7 +43,6 @@ We have prepared a Docker-compose file for a local try. Upon start, you get runn
 - MAXSCALE_PASSWORD. MaxScale user password for connection to underlying MySQL database
 - MAXSCALE_CA_CERTIFICATE. Certificate to use to verify a secure connection
 - MAXSCALE_EXPORTER_PORT. Port that the Exporter expose to provide metrics for Prometheus
-- MAXSCALE_MAX_CONNECTIONS. When set will create a static gauge metric with its value, should be set like the [max_connections](https://mariadb.com/kb/en/mariadb-maxscale-25-mariadb-maxscale-configuration-guide/#max_connections) setting in maxscale (this metric can be used to define alerts)
 
 ### Run
 
