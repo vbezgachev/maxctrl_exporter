@@ -30,6 +30,7 @@ var (
 	serverLabelNames         = []string{"server", "address"}
 	serverUpLabelNames       = []string{"server", "address", "status"}
 	serviceLabelNames        = []string{"name", "router"}
+	monitorLabelNames        = []string{"name", "cooperative_monitoring_locks"}
 	maxscaleStatusLabelNames = []string{}
 	statusLabelNames         = []string{"id"}
 )
@@ -83,5 +84,11 @@ var (
 		"status_query_classifier_cache_hits":      newDesc("status", "query_classifier_cache_hits", "The number of hits in the query classifier cache", statusLabelNames, prometheus.GaugeValue),
 		"status_query_classifier_cache_misses":    newDesc("status", "query_classifier_cache_misses", "The number of misses in the query classifier cache", statusLabelNames, prometheus.GaugeValue),
 		"status_query_classifier_cache_evictions": newDesc("status", "query_classifier_cache_evictions", "The number of evictions in the query classifier cache", statusLabelNames, prometheus.GaugeValue),
+	}
+
+	MonitorMetrics = metrics{
+		"monitor_primary":       newDesc("monitor", "primary", "Is a primary node", monitorLabelNames, prometheus.GaugeValue),
+		"monitor_auto_failover": newDesc("monitor", "auto_failover", "Is auto-failover enable", monitorLabelNames, prometheus.CounterValue),
+		"monitor_auto_rejoin":   newDesc("monitor", "auto_rejoin", "Is auto-rejoin enable", monitorLabelNames, prometheus.GaugeValue),
 	}
 )
