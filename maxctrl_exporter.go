@@ -62,6 +62,7 @@ type MaxScale struct {
 	totalScrapes          prometheus.Counter
 	serverMetrics         map[string]Metric
 	serviceMetrics        map[string]Metric
+	monitorMetrics        map[string]Metric
 	maxscaleStatusMetrics map[string]Metric
 	statusMetrics         map[string]Metric
 }
@@ -109,6 +110,7 @@ func NewExporter(url string, username string, password string, caCertificate str
 		serviceMetrics:        ServiceMetrics,
 		maxscaleStatusMetrics: MaxscaleStatusMetrics,
 		statusMetrics:         StatusMetrics,
+		monitorMetrics:        MonitorMetrics,
 	}, nil
 }
 
@@ -158,6 +160,11 @@ func (m *MaxScale) Collect(ch chan<- prometheus.Metric) {
 	}
 
 	if err := m.parseThreadStatus(ch); err != nil {
+		parseErrors = true
+		log.Print(err)
+	}
+
+	if err := m.parseMonitors(ch); err != nil {
 		parseErrors = true
 		log.Print(err)
 	}
@@ -287,6 +294,40 @@ func (m *MaxScale) parseMaxscaleStatus(ch chan<- prometheus.Metric) error {
 
 	return nil
 }
+
+func (m *MaxScale) parseMonitors(ch chan<- prometheus.Metric) error {
+	var monitors Monitors
+	err := m.getStatistics("/monitors", &monitors)
+
+	if err != nil {
+		return err
+	}
+
+	for _, monitor := range monitors.Data {
+
+		primary := 0
+		if monitor.Attributes.MonitorDiagnostics.Primary {
+			primary = 1
+		}
+		m.createMetricForPrometheus(m.monitorMetrics, "monitor_primary", primary, ch, monitor.ID, monitor.Attributes.Parameters.CooperativeMonitoringLocks)
+
+		auto_failover := 0
+		if monitor.Attributes.Parameters.AutoFailover {
+			auto_failover = 1
+		}
+		m.createMetricForPrometheus(m.monitorMetrics, "monitor_auto_failover", auto_failover, ch, monitor.ID, monitor.Attributes.Parameters.CooperativeMonitoringLocks)
+
+		auto_rejoin := 0
+		if monitor.Attributes.Parameters.AutoFailover {
+			auto_rejoin = 1
+		}
+		m.createMetricForPrometheus(m.monitorMetrics, "monitor_auto_rejoin", auto_rejoin, ch, monitor.ID, monitor.Attributes.Parameters.CooperativeMonitoringLocks)
+
+	}
+
+	return nil
+}
+
 func (m *MaxScale) parseThreadStatus(ch chan<- prometheus.Metric) error {
 	var threadStatus ThreadStatus
 	err := m.getStatistics("/maxscale/threads", &threadStatus)

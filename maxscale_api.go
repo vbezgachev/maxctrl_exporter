@@ -75,6 +75,38 @@ type Services struct {
 	} `json:"data"`
 }
 
+// Monitors structure reflects JSON object returned by MaxScale REST API
+// <maxscale url>/v1/monitors
+type Monitors struct {
+	Links interface {
+	} `json:"links"`
+	Data []struct {
+		ID string `json:"id"`
+		// add other parameters if needed
+		Attributes struct {
+			Module string `json:"module"`
+			//nolint
+			MonitorDiagnostics struct {
+				Primary bool   `json:"primary"`
+				Master  string `json:"master"`
+			} `json:"monitor_diagnostics"`
+			//nolint
+			Parameters struct {
+				CooperativeMonitoringLocks string `json:"cooperative_monitoring_locks"`
+				AutoFailover               bool   `json:"auto_failover"`
+				AutoRejoin                 bool   `json:"auto_rejoin"`
+			} `json:"parameters"`
+			//nolint
+		} `json:"attributes"`
+		//nolint
+		Relationships interface {
+		} `json:"relationships"`
+		//nolint
+		Links interface {
+		} `json:"links"`
+	} `json:"data"`
+}
+
 // MaxscaleStatus structure reflects JSON object returned by MaxScale REST API
 // <maxscale url>/v1/maxscale
 type MaxscaleStatus struct {
