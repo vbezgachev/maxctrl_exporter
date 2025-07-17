@@ -72,6 +72,7 @@ func TestGettingConfigFromEnvironment(t *testing.T) {
 	maxScaleExporterPort = ""
 	maxScaleCACertificate = ""
 	maxctrlExporterConfigFile = ""
+	maxScaleTLSInsecureSkipVerify = false
 
 	keys := []string{"MAXSCALE_URL", "MAXSCALE_USERNAME", "MAXSCALE_PASSWORD", "MAXSCALE_EXPORTER_PORT",
 		"MAXSCALE_CA_CERTIFICATE", "MAXCTRL_EXPORTER_CFG_FILE"}
@@ -88,6 +89,8 @@ func TestGettingConfigFromEnvironment(t *testing.T) {
 	for k, v := range want {
 		os.Setenv(k, v)
 	}
+
+	os.Setenv("MAXSCALE_TLS_INSECURE_SKIP_VERIFY", "true")
 
 	setConfigFromEnvironmentVars()
 	got := make(map[string]string)
@@ -120,6 +123,10 @@ func TestGettingConfigFromEnvironment(t *testing.T) {
 		// Unset these as we test
 		os.Unsetenv(k)
 	}
+
+	if maxScaleTLSInsecureSkipVerify != true {
+		log.Fatalf("Config key 'MAXSCALE_TLS_INSECURE_SKIP_VERIFY' had unexpected value. wanted 'true' and got '%v'", maxScaleTLSInsecureSkipVerify)
+	}
 }
 
 // Test parsing config contents
@@ -127,7 +134,7 @@ func TestConfigParsing(t *testing.T) {
 	// Pre-initialize the variables
 	setConfigFromEnvironmentVars()
 
-	keys := []string{"url", "username", "password", "exporter_port", "caCertificate"}
+	keys := []string{"url", "username", "password", "exporter_port", "caCertificate", "tlsInsecureSkipVerify"}
 
 	want := map[string]string{
 		keys[0]: "http://10.10.10.1:8989",
@@ -135,6 +142,7 @@ func TestConfigParsing(t *testing.T) {
 		keys[2]: "secretPassword",
 		keys[3]: "8080",
 		keys[4]: "",
+		keys[5]: "true",
 	}
 
 	contents := ""
@@ -153,15 +161,23 @@ func TestConfigParsing(t *testing.T) {
 	got[keys[4]] = maxScaleCACertificate
 
 	for _, k := range keys {
+		if k == "tlsInsecureSkipVerify" {
+			continue
+		}
 		if want[k] != got[k] {
 			log.Fatalf("Config key '%s' had unexpected value. wanted '%s' and got '%s'", k, want[k], got[k])
 		}
 	}
 
+	// Test value of maxScaleTLSInsecureSkipVerify
+	if maxScaleTLSInsecureSkipVerify != true {
+		log.Fatalf("Config key 'MAXSCALE_TLS_INSECURE_SKIP_VERIFY' had unexpected value. wanted 'true' and got '%v'", maxScaleTLSInsecureSkipVerify)
+	}
+
 	// Redo the test, but with some values missing from the config file
 	contents = ""
 	for k, v := range want {
-		if k == "exporter_port" || k == "caCertificate" {
+		if k == "exporter_port" || k == "caCertificate" || k == "tlsInsecureSkipVerify" {
 			continue
 		}
 		contents = fmt.Sprintf("%s%s: %s\n", contents, k, v)
@@ -178,8 +194,16 @@ func TestConfigParsing(t *testing.T) {
 	got[keys[4]] = maxScaleCACertificate
 
 	for _, k := range keys {
+		if k == "tlsInsecureSkipVerify" {
+			continue
+		}
 		if want[k] != got[k] {
 			log.Fatalf("Config key '%s' had unexpected value. wanted '%s' and got '%s'", k, want[k], got[k])
 		}
+	}
+
+	// Test default value of maxScaleTLSInsecureSkipVerify
+	if maxScaleTLSInsecureSkipVerify != false {
+		log.Fatalf("Config key 'MAXSCALE_TLS_INSECURE_SKIP_VERIFY' had unexpected value. wanted 'false' and got '%v'", maxScaleTLSInsecureSkipVerify)
 	}
 }
