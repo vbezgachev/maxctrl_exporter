@@ -23,6 +23,7 @@ import (
 	"log"
 	"net/http"
 	"os"
+	"strconv"
 	"strings"
 
 	"github.com/prometheus/client_golang/prometheus"
@@ -36,20 +37,22 @@ const (
 )
 
 var (
-	maxScaleUrl               string // URL of maxscale instance
-	maxScaleUsername          string // Username for maxscale REST API authentication
-	maxScalePassword          string // Password for maxscale REST API authentication
-	maxScaleExporterPort      string // Port for this exporter to run on
-	maxScaleCACertificate     string // File containing CA certificate
-	maxctrlExporterConfigFile string // File containing exporter config
+	maxScaleUrl                   string // URL of maxscale instance
+	maxScaleUsername              string // Username for maxscale REST API authentication
+	maxScalePassword              string // Password for maxscale REST API authentication
+	maxScaleExporterPort          string // Port for this exporter to run on
+	maxScaleCACertificate         string // File containing CA certificate
+	maxctrlExporterConfigFile     string // File containing exporter config
+	maxScaleTLSInsecureSkipVerify bool   // Disable TLS verify
 )
 
 type ConfigValues struct {
-	Url           string `yaml:"url"`
-	Username      string `yaml:"username"`
-	Password      string `yaml:"password"`
-	ExporterPort  string `yaml:"exporter_port"`
-	CACertificate string `yaml:"caCertificate"`
+	Url                   string `yaml:"url"`
+	Username              string `yaml:"username"`
+	Password              string `yaml:"password"`
+	ExporterPort          string `yaml:"exporter_port"`
+	CACertificate         string `yaml:"caCertificate"`
+	TLSInsecureSkipVerify bool   `yaml:"tlsInsecureSkipVerify" default:"false"`
 }
 
 // MaxScale contains connection parameters to the server and metric maps
@@ -68,7 +71,7 @@ type MaxScale struct {
 }
 
 // NewExporter creates a new instance of the MaxScale
-func NewExporter(url string, username string, password string, caCertificate string) (*MaxScale, error) {
+func NewExporter(url string, username string, password string, caCertificate string, tlsInsecureSkipVerify bool) (*MaxScale, error) {
 	rootCAs, _ := x509.SystemCertPool()
 	if rootCAs == nil {
 		rootCAs = x509.NewCertPool()
@@ -88,7 +91,8 @@ func NewExporter(url string, username string, password string, caCertificate str
 	}
 
 	transport := &http.Transport{TLSClientConfig: &tls.Config{
-		RootCAs: rootCAs,
+		RootCAs:            rootCAs,
+		InsecureSkipVerify: tlsInsecureSkipVerify,
 	}}
 
 	return &MaxScale{
@@ -423,13 +427,18 @@ func parseConfigFile(contents []byte) {
 	if config.CACertificate != "" {
 		maxScaleCACertificate = config.CACertificate
 	}
+	maxScaleTLSInsecureSkipVerify = config.TLSInsecureSkipVerify
 }
 
 func setConfigFromEnvironmentVars() {
+	var err error
 	maxScaleUrl = GetEnvVar("MAXSCALE_URL", "http://127.0.0.1:8989")
 	maxScaleUsername = GetEnvVar("MAXSCALE_USERNAME", "admin")
 	maxScalePassword = GetEnvVar("MAXSCALE_PASSWORD", "mariadb")
 	maxScaleExporterPort = GetEnvVar("MAXSCALE_EXPORTER_PORT", "8080")
+	if maxScaleTLSInsecureSkipVerify, err = strconv.ParseBool(GetEnvVar("MAXSCALE_TLS_INSECURE_SKIP_VERIFY", "false")); err != nil {
+		maxScaleTLSInsecureSkipVerify = false
+	}
 	maxScaleCACertificate = GetEnvVar("MAXSCALE_CA_CERTIFICATE", "")
 	maxctrlExporterConfigFile = GetEnvVar("MAXCTRL_EXPORTER_CFG_FILE", "maxctrl_exporter.yaml")
 }
@@ -441,7 +450,7 @@ func main() {
 	log.Print("Starting MaxScale exporter")
 	log.Printf("Scraping MaxScale JSON API at: %s", maxScaleUrl)
 
-	exporter, err := NewExporter(maxScaleUrl, maxScaleUsername, maxScalePassword, maxScaleCACertificate)
+	exporter, err := NewExporter(maxScaleUrl, maxScaleUsername, maxScalePassword, maxScaleCACertificate, maxScaleTLSInsecureSkipVerify)
 	if err != nil {
 		log.Fatalf("Failed to start maxscale exporter: %v\n", err)
 	}

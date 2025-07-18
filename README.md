@@ -43,6 +43,7 @@ We have prepared a Docker-compose file for a local try. Upon start, you get runn
 - MAXSCALE_PASSWORD. MaxScale user password for connection to underlying MySQL database
 - MAXSCALE_CA_CERTIFICATE. Certificate to use to verify a secure connection
 - MAXSCALE_EXPORTER_PORT. Port that the Exporter expose to provide metrics for Prometheus
+- MAXSCALE_TLS_INSECURE_SKIP_VERIFY. Boolean to skip TLS verification, default is `false`
 
 ### Run
 
