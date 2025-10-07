@@ -61,6 +61,8 @@ var (
 	MaxscaleStatusMetrics = metrics{
 		"status_uptime":  newDesc("status", "uptime", "How long has the server been running", maxscaleStatusLabelNames, prometheus.GaugeValue),
 		"status_threads": newDesc("status", "threads", "Number of worker threads", maxscaleStatusLabelNames, prometheus.GaugeValue),
+		"status_writeq_high_water": newDesc("status", "writeq_high_water", "High water mark for network write buffer", maxscaleStatusLabelNames, prometheus.GaugeValue),
+		"status_writeq_low_water": newDesc("status", "writeq_low_water", "Low water mark for network write buffer", maxscaleStatusLabelNames, prometheus.GaugeValue),
 		"status_passive": newDesc("status", "passive", "Has passive mode", maxscaleStatusLabelNames, prometheus.GaugeValue),
 	}
 

@@ -289,6 +289,12 @@ func (m *MaxScale) parseMaxscaleStatus(ch chan<- prometheus.Metric) error {
 	m.createMetricForPrometheus(m.maxscaleStatusMetrics, "status_threads",
 		maxscaleStatus.Data.Attributes.Parameters.Threads, ch)
 
+	m.createMetricForPrometheus(m.maxscaleStatusMetrics, "status_writeq_high_water",
+		maxscaleStatus.Data.Attributes.Parameters.WriteqHighWater, ch)
+
+	m.createMetricForPrometheus(m.maxscaleStatusMetrics, "status_writeq_low_water",
+		maxscaleStatus.Data.Attributes.Parameters.WriteqLowWater, ch)
+
 	passiveMode := 0
 	if maxscaleStatus.Data.Attributes.Parameters.Passive {
 		passiveMode = 1

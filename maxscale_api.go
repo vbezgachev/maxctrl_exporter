@@ -116,6 +116,8 @@ type MaxscaleStatus struct {
 		Attributes struct {
 			Parameters struct {
 				Threads int  `json:"threads"`
+				WriteqHighWater int  `json:"writeq_high_water"`
+				WriteqLowWater int  `json:"writeq_low_water"`
 				Passive bool `json:"passive"`
 				// add other parameters if needed
 			} `json:"parameters"`
