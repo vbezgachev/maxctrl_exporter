@@ -92,9 +92,9 @@ type Monitors struct {
 			} `json:"monitor_diagnostics"`
 			//nolint
 			Parameters struct {
-				CooperativeMonitoringLocks string `json:"cooperative_monitoring_locks"`
-				AutoFailover               bool   `json:"auto_failover"`
-				AutoRejoin                 bool   `json:"auto_rejoin"`
+				CooperativeMonitoringLocks string           `json:"cooperative_monitoring_locks"`
+				AutoFailover               AutoFailoverValue `json:"auto_failover"`
+				AutoRejoin                 bool             `json:"auto_rejoin"`
 			} `json:"parameters"`
 			//nolint
 		} `json:"attributes"`

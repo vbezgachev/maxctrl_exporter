@@ -90,7 +90,7 @@ var (
 
 	MonitorMetrics = metrics{
 		"monitor_primary":       newDesc("monitor", "primary", "Is a primary node", monitorLabelNames, prometheus.GaugeValue),
-		"monitor_auto_failover": newDesc("monitor", "auto_failover", "Is auto-failover enable", monitorLabelNames, prometheus.CounterValue),
+		"monitor_auto_failover": newDesc("monitor", "auto_failover", "Is auto-failover enabled (1 for true/safe, 0 for false)", monitorLabelNames, prometheus.CounterValue),
 		"monitor_auto_rejoin":   newDesc("monitor", "auto_rejoin", "Is auto-rejoin enable", monitorLabelNames, prometheus.GaugeValue),
 	}
 )
